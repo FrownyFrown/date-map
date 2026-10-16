@@ -46,8 +46,11 @@ def main():
     for p in notion_rows():
         pr = {k: val(v) for k, v in p["properties"].items()}
         g = geo.get(p["id"], {})
-        photos = ["data:image/jpeg;base64," + base64.b64encode(open(f, "rb").read()).decode()
-                  for f in sorted(glob.glob(os.path.join(HERE, "photos", p["id"] + "_*.jpg")))]
+        # <id>_r.jpg = 식당 대표 사진(웹), <id>_<n>.jpg = 우리가 찍은 사진. 대표 사진을 앞에 둔다
+        photos = [{"src": "data:image/jpeg;base64," + base64.b64encode(open(f, "rb").read()).decode(),
+                   "mine": not f.endswith("_r.jpg")}
+                  for f in sorted(glob.glob(os.path.join(HERE, "photos", p["id"] + "_*.jpg")),
+                                  key=lambda f: (not f.endswith("_r.jpg"), f))]
         places.append({
             "id": p["id"], "name": pr.get("이름"), "status": pr.get("상태"), "kind": pr.get("음식 종류"),
             "minutes": pr.get("이동 시간(분)"), "area": pr.get("지역"), "menu": pr.get("대표 메뉴"),
